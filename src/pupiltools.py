@@ -510,13 +510,20 @@ def read_fixations_file(datafile, surface_label):
 	participant = os.path.split(folder)[1]
 
 	# Parse the subject nr from the folder name
-	try:
+	try:		
 		subject_nr = int(re.findall(r'\d+',participant)[0])
 		data.loc[:,"subject_nr"] = subject_nr
+		try:
+			phase = int(re.findall(r'\d+',participant)[1])
+			data.loc[:,"phase"] = phase
+		except:
+			pass
+		
 	except:
 		print >> sys.stderr, "\nFile {0}: Could not parse participant number from folder name".format(participant)
 		print data
 		sys.exit(0)
+		
 	try:
 		data.loc[:,"subject_file"] = participant
 		data.loc[:,"trial_no"] = int(trial_no)
@@ -530,8 +537,17 @@ def read_fixations_file(datafile, surface_label):
 	data.loc[:,"fixation_index"] = data.reset_index().index+1
 	# Value is normally in seconds, Convert to ms
 	data.loc[:,"fixation_duration_ms"] = data["fixation_duration_ms"].astype(float)*1000
-	data = data.reindex(columns=["id","subject_file","subject_nr","trial_no","surface_label",\
-	"fixation_index","fixation_duration_ms","x","y","timestamp"])
+	
+	columns = ["id","subject_file","subject_nr","trial_no","surface_label",\
+	"fixation_index","fixation_duration_ms","x","y","timestamp"]
+
+	try:
+		phase
+		columns.append('phase')
+	except:
+		pass
+		
+	data = data.reindex(columns=columns)
 	return data
 
 def analyze_file(datafile, sacc_threshold=0.9):
