@@ -426,7 +426,7 @@ def analyze_files_in_folder(folder, surface_name=None, sacc_threshold=0.9, read_
 		elif read_fixations_from_file and os.path.isfile(item_path):
 			if not surface_name is None and "fixations_on_surface_{0}".format(surface_name) in os.path.split(item_path)[1]:
 				new_fixations = read_fixations_file(item_path, surface_name)
-	
+
 				if not new_fixations is None:
 					if not fixations is None:
 						fixations = pd.concat([fixations, new_fixations], ignore_index=True)
@@ -435,7 +435,7 @@ def analyze_files_in_folder(folder, surface_name=None, sacc_threshold=0.9, read_
 			elif "fixations_on_surface_" in os.path.split(item_path)[1]:
 				filename = os.path.split(item_path)[1]
 				surface_name = filename.split('_')[3]
-				
+
 				new_fixations = read_fixations_file(item_path, surface_name)
 				if not new_fixations is None:
 					if not fixations is None:
@@ -510,7 +510,7 @@ def read_fixations_file(datafile, surface_label):
 	participant = os.path.split(folder)[1]
 
 	# Parse the subject nr from the folder name
-	try:		
+	try:
 		subject_nr = int(re.findall(r'\d+',participant)[0])
 		data.loc[:,"subject_nr"] = subject_nr
 		try:
@@ -518,12 +518,12 @@ def read_fixations_file(datafile, surface_label):
 			data.loc[:,"phase"] = phase
 		except:
 			pass
-		
+
 	except:
 		print >> sys.stderr, "\nFile {0}: Could not parse participant number from folder name".format(participant)
 		print data
 		sys.exit(0)
-		
+
 	try:
 		data.loc[:,"subject_file"] = participant
 		data.loc[:,"trial_no"] = int(trial_no)
@@ -537,7 +537,7 @@ def read_fixations_file(datafile, surface_label):
 	data.loc[:,"fixation_index"] = data.reset_index().index+1
 	# Value is normally in seconds, Convert to ms
 	data.loc[:,"fixation_duration_ms"] = data["fixation_duration_ms"].astype(float)*1000
-	
+
 	columns = ["id","subject_file","subject_nr","trial_no","surface_label",\
 	"fixation_index","fixation_duration_ms","x","y","timestamp"]
 
@@ -546,7 +546,7 @@ def read_fixations_file(datafile, surface_label):
 		columns.append('phase')
 	except:
 		pass
-		
+
 	data = data.reindex(columns=columns)
 	return data
 
@@ -1077,7 +1077,7 @@ def assign_fixations_to_IAs(fix_list, IAs, scaler, column_name="interest_area"):
 	"""
 
 	# Initialze
-	fix_list[column_name] = "None"
+	fix_list.loc[:,column_name] = "None"
 	for row in fix_list.iterrows():
 		index = row[0]
 		data = row[1]
