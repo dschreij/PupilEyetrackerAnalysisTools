@@ -26,6 +26,10 @@ import scipy.ndimage as ndi
 import math
 import random
 import re
+import six
+
+__version__ = "0.1.0"
+__author__ = "Daniel Schreij"
 
 #------------------------------------------------------------------------------
 # Classes
@@ -62,7 +66,7 @@ class InterestArea(object):
 		self._label = "Unnamed"
 
 		if kwargs:
-			if "label" in kwargs and type(kwargs["label"]) in [str, unicode]:
+			if "label" in kwargs and type(kwargs["label"]) in six.string_types:
 				self._label = kwargs["label"]
 
 	def __repr__(self):
@@ -217,7 +221,7 @@ class InterestArea(object):
 		value : str/unicode
 			The name of the interest area
 		"""
-		if type(value) in [str,unicode]:
+		if type(value) in six.string_types:
 			self._label = value
 		else:
 			raise ValueError("Value must be string or unicde")
@@ -240,7 +244,7 @@ class InterestArea(object):
 		bottom_left	 = (x, y+h)
 		return (top_left, top_right, bottom_right, bottom_left)
 
-	def inside(self, (x,y)):
+	def inside(self, xy ):
 		""" Checks if the specified point falls inside the interest area's boundaries
 
 		Parameters
@@ -254,6 +258,8 @@ class InterestArea(object):
 
 		False if point is located outside of interest area
 		"""
+
+		x, y = xy
 
 		area = self.get_corners()
 
@@ -281,7 +287,7 @@ class InterestArea(object):
 		"""
 		return (self._x+0.5*self._w, self._y+0.5*self._h)
 
-	def distance_to(self,(x,y)):
+	def distance_to(self, xy ):
 		"""Calculates the distance of the supplied point to the center of the IA
 
 		Parameters
@@ -293,6 +299,7 @@ class InterestArea(object):
 		-------
 		int : distance to IA center
 		"""
+		x, y = xy
 		cx,cy = self.get_center()
 		return math.hypot(x-cx, y-cy)
 
@@ -451,7 +458,7 @@ def analyze_files_in_folder(folder, surface_name=None, sacc_threshold=0.9, read_
 			data = data.sort_index(by=['subject_file','trial_no','timestamp']).reset_index(drop=True)
 		if not fixations is None:
 			fixations = fixations.sort_index(by=['subject_file','trial_no','timestamp']).reset_index(drop=True)
-		print "\nFinished"
+		print("\nFinished")
 	return data, fixations
 
 def read_fixations_file(datafile, surface_label):
@@ -486,14 +493,14 @@ def read_fixations_file(datafile, surface_label):
 	"""
 	data = pd.read_csv(datafile, sep="\t")
 	if not len(data.index):
-		print "\n{0} appears to be empty".format(datafile)
+		print("\n{0} appears to be empty".format(datafile))
 		return None
 
 	# Only keep fixations that were inside a surface
 	data = data.query("on_srf == True")
 	# If dataframe is empty, issue a warning message and simply return None
 	if not len(data.index):
-		print "\n{0} has no fixations on surface".format(datafile)
+		print("\n{0} has no fixations on surface".format(datafile))
 		return None
 
 	data = data.rename(columns={
@@ -520,8 +527,8 @@ def read_fixations_file(datafile, surface_label):
 			pass
 
 	except:
-		print >> sys.stderr, "\nFile {0}: Could not parse participant number from folder name".format(participant)
-		print data
+		print("\nFile {0}: Could not parse participant number from folder name".format(participant))
+		print(data)
 		sys.exit(0)
 
 	try:
@@ -530,7 +537,7 @@ def read_fixations_file(datafile, surface_label):
 		data.loc[:,"surface_label"] = surface_label
 
 	except Exception as e:
-		print >> sys.stderr, "\nError reading participant fixations file {}, trial {}: {} (empty data file or no fixations on surface?)\n".format(participant, trial_no, e)
+		print("\nError reading participant fixations file {}, trial {}: {} (empty data file or no fixations on surface?)\n".format(participant, trial_no, e))
 		return None
 
 	# Set fixation indices
@@ -620,7 +627,7 @@ def analyze_file(datafile, sacc_threshold=0.9):
 	elif os.path.splitext(datafile)[1] == ".csv": # Assume it's the official pupil software's surface data export
 		data = pd.read_csv(datafile, sep="\t")
 		if not len(data.index):
-			print "\n{0} appears to be empty".format(datafile)
+			print("\n{0} appears to be empty".format(datafile))
 			return None
 		data = data.query("on_srf == True")
 		data = data.rename(columns={"world_frame_idx":"frame_index", "world_timestamp":"timestamp", "x_norm":"x", "y_norm":"y"})
@@ -631,7 +638,7 @@ def analyze_file(datafile, sacc_threshold=0.9):
 
 	# If dataframe is empty, issue a warning message and simply return None
 	if not len(data.index):
-		print >> sys.stderr, "\n{0} has no samples on surface".format(datafile)
+		print("\n{0} has no samples on surface".format(datafile))
 		return None
 
 	(folder, trial_no) = os.path.split(trial_folder)
@@ -641,7 +648,7 @@ def analyze_file(datafile, sacc_threshold=0.9):
 		data.loc[:,"subject_file"] = participant
 		data.loc[:,"trial_no"] = int(trial_no)
 	except Exception as e:
-		print >> sys.stderr, "\nError reading participant file {}, trial {}: {} (empty data file or no fixations on surface?)".format(participant, trial_no, e)
+		print("\nError reading participant file {}, trial {}: {} (empty data file or no fixations on surface?)".format(participant, trial_no, e))
 		return None
 
 	# Parse the subject nr from the folder name
@@ -649,7 +656,7 @@ def analyze_file(datafile, sacc_threshold=0.9):
 		subject_nr = int(re.findall(r'\d+',participant)[0])
 		data.loc[:,"subject_nr"] = subject_nr
 	except:
-		print >> sys.stderr, "\nFolder {0}, trial {1}: Could not parse participant number from folder name".format(participant,trial_no)
+		print("\nFolder {0}, trial {1}: Could not parse participant number from folder name".format(participant,trial_no))
 
 	# It is nice to set this information as the first two columns, so reindex the dataframe by
 	# respecifying the order of columns
@@ -805,7 +812,8 @@ def generate_fixations_list(data, strict=True, keep_fix_index=False):
 	return fixations
 
 
-def generate_heatmap(eye_data, size=(1000,1200), surface_image=None, gauss_outflow=20, title=False):
+def generate_heatmap(eye_data, size=(1000,1200), surface_image=None,
+	gauss_outflow=25, title=False, bins=1000, heatmap_alpha=0.5):
 	"""Generates heatmap of supplied samples
 
 	Plots a pyplot.hist2d of the supplied list of samples
@@ -821,12 +829,21 @@ def generate_heatmap(eye_data, size=(1000,1200), surface_image=None, gauss_outfl
 	surface_image : string, default None:
 		Path to the image to use as the background of the fixation plot
 
-	gauss_outflow : int, default 20
+	gauss_outflow : int, default 25
 		The extent to which the 'heat' of a fixation flows out to the neighboring pixels
 		The lower this number, the more confined the hotspots are to the location of the fixation
 
 	title : bool, default False
 		Title to display above graph.
+
+	bins: int, default 1000
+		The binsize (in pixels) to use for the histogram. This can be any of the
+		options that is described for the bins argument at 
+		https://docs.scipy.org/doc/numpy-1.10.1/reference/generated/numpy.histogram2d.html
+
+	heatmap_alpha : float, default 0.5
+		Transparancy value between 0 and 1.0 for the heatmap.
+
 	"""
 
 	# Set plot properties
@@ -839,23 +856,26 @@ def generate_heatmap(eye_data, size=(1000,1200), surface_image=None, gauss_outfl
 	# Reset the indices of the passed data array just to be sure they always start at 0
 	eye_data = eye_data.copy().reset_index()
 
-	h, x_edge, y_edge = np.histogram2d(eye_data.x*size[0], eye_data.y*size[1], bins=(range(size[0]+1), range(size[1]+1)))
-	h = ndi.gaussian_filter(h, (30, 30))  ## gaussian convolution
+	heatmap, xedges, yedges = np.histogram2d(eye_data.x*size[0], eye_data.y*size[1],
+		bins=bins)
+	heatmap = ndi.gaussian_filter(heatmap, (gauss_outflow, gauss_outflow))  ## gaussian convolution
 
 	# First check if image location is specified and exists as a file.
 	if not surface_image is None:
 		if not type(surface_image) == str:
- 			raise TypeError("surface_image must be a path to the image")
-		else:
-			if not (os.path.isfile(surface_image) and os.access(surface_image, os.R_OK)):
-				raise IOError("Image file not found at path or is unreadable (check permissions)")
-			else:
-				# Flip image upside down
-				im = plt.imread(surface_image)
-				plt.imshow(im, aspect='auto', extent=[0,size[0], 0, size[1]])
+			raise TypeError("surface_image must be a path to the image")
+			return
 
-	ax = plt.imshow(h.T)
-	ax.set_alpha(0.5)
+		if not (os.path.isfile(surface_image) and os.access(surface_image, os.R_OK)):
+			raise IOError("Image file {0} not found at path or is unreadable (check permissions)".format(surface_image))
+			return
+
+		# Flip image upside down
+		im = plt.imread(surface_image)
+		plt.imshow(im, aspect='auto', extent=[0,size[0], 0, size[1]])
+
+	ax = plt.imshow(heatmap.T, origin='lower', extent=[0,size[0], 0, size[1]])
+	ax.set_alpha(heatmap_alpha)
 
 	if title:
 		plt.title(title)
@@ -1136,7 +1156,7 @@ def calculate_distance_to_target(fix_list, IAs, target_col_label, scaler):
 				current_target_IA = next(ia for ia in IAs if ia.label == row[target_col_label])
 			except StopIteration:
 				#raise LookupError("Could not find the specified interest area {0}".format(row[target_col_label]))
-				print "No IA found for {0}".format(row[target_col_label])
+				print("No IA found for {0}".format(row[target_col_label]))
 				current_target_IA = None
 
 		if current_target_IA:
@@ -1250,7 +1270,7 @@ def calculate_scan_path_ratios(fix_list, scale=(1.0,1.0), till_first_t_fixation=
 				# If a break did not occur (and thus there was apparently no fixation on the target item this trial)
 				# you might want to flag this trial as erroneous. Especially if till_first_t_fixation is True.
 				if till_first_t_fixation:
-					print >> sys.stderr, "Participant {0}, trial {1}: No fixation on target detected".format(subject,int(trial))
+					print("Participant {0}, trial {1}: No fixation on target detected".format(subject,int(trial)))
 					# Quit for this trial, don't add it to the list
 					error_count += 1
 					continue
@@ -1273,9 +1293,9 @@ def calculate_scan_path_ratios(fix_list, scale=(1.0,1.0), till_first_t_fixation=
 
 			scan_path_df = scan_path_df.append(new_row, ignore_index=True)
 
-	print "Finished with {0} errors".format(error_count)
-	print "{0}% of the trials discarded".format(int(1.0*error_count/total_count*100))
-	print "\n"
+	print("Finished with {0} errors".format(error_count))
+	print("{0}% of the trials discarded".format(int(1.0*error_count/total_count*100)))
+	print("\n")
 
 	# Do some typecasting
 	scan_path_df[["no_of_saccades","sum_saccade_distance","dist_first_sacc_to_target","scanpath_ratio","t_to_first_target_fix"]] = scan_path_df[["no_of_saccades","sum_saccade_distance","dist_first_sacc_to_target","scanpath_ratio","t_to_first_target_fix"]].astype(float)
@@ -1341,7 +1361,7 @@ def calculate_incidental_gaze_durations(fix_list, min_distance_to_target=None, i
 
 if __name__ == "__main__":
 	if len(sys.argv)	< 2:
-		print "Please supply data file location"
+		print("Please supply data file location")
 	else:
 		datafile = sys.argv[1]
 
@@ -1364,10 +1384,5 @@ if __name__ == "__main__":
 				eye_data.to_csv(os.path.join(os.getcwd(),"raw_data.csv"), index=False)
 
 		except IOError as e:
-			print >> sys.stderr, e.message
+			print(e.message)
 			sys.exit(1)
-
-
-
-
-
