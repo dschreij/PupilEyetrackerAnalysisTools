@@ -28,7 +28,7 @@ setup(
 	author='Daniel Schreij',
 	author_email='dschreij@gmail.com',
 	url='https://github.com/dschreij/PupilEyetrackerAnalysisTools',
-	py_modules=['pupiltools'],
+	packages=['pupiltools'],
 	classifiers=[
 		'Intended Audience :: Developers',
 		'Topic :: Desktop Environment',
@@ -36,4 +36,13 @@ setup(
 		'Programming Language :: Python :: 2',
 		'Programming Language :: Python :: 3',
 	],
+	install_requires=[
+		'pandas',
+		'statsmodels',
+		'numpy',
+		'scipy',
+		'matplotlib',
+		'six',
+	],
+	include_package_data=True,
 )
