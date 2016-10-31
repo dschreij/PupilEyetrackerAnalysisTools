@@ -813,7 +813,7 @@ def generate_fixations_list(data, strict=True, keep_fix_index=False):
 
 
 def generate_heatmap(eye_data, size=(1000,1200), surface_image=None,
-	gauss_outflow=25, title=False, bins=1000, heatmap_alpha=0.5):
+	gauss_outflow=25, title=False, bins=1000, heatmap_alpha=0.5, axes=False):
 	"""Generates heatmap of supplied samples
 
 	Plots a pyplot.hist2d of the supplied list of samples
@@ -838,11 +838,14 @@ def generate_heatmap(eye_data, size=(1000,1200), surface_image=None,
 
 	bins: int, default 1000
 		The binsize (in pixels) to use for the histogram. This can be any of the
-		options that is described for the bins argument at 
+		options that is described for the bins argument at
 		https://docs.scipy.org/doc/numpy-1.10.1/reference/generated/numpy.histogram2d.html
 
 	heatmap_alpha : float, default 0.5
 		Transparancy value between 0 and 1.0 for the heatmap.
+
+	axes : boolean, default False
+		If true, shows axes (representing the pixel dimensions) on the plot.
 
 	"""
 
@@ -850,6 +853,9 @@ def generate_heatmap(eye_data, size=(1000,1200), surface_image=None,
 	plt.figure(figsize=(size[0]/200, size[1]/200))
 	plt.xlim(0,size[0])
 	plt.ylim(0,size[1])
+
+	if axes == False:
+		plt.axis('off')
 
 	# Somehow the hist2d function crashes if the index of the data array does not start with 0,
 	# which is not always the case if the data is queried from a larger dataset.
